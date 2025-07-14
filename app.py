@@ -14,35 +14,38 @@ def load_data():
     ss     = client.open_by_key(SHEET_ID)
 
     def fetch_and_clean(sheet_name):
-        # 1) grab everything as a list of lists
         raw = ss.worksheet(sheet_name).get_all_values()
-        header_row, data_rows = raw[0], raw[1:]
-        
-        # 2) build friendly column names
+
+        # — use the 2nd row as header, skip the 1st blank row
+        header_row = raw[1]
+        data_rows  = raw[2:]
+
+        # build column names exactly as what you see in row 2
         col_names = []
         last_week = None
         for h in header_row:
-            if not h.strip():
+            h = h.strip()
+            if not h:
                 col_names.append("Channel")
             elif h.startswith("Week-"):
                 col_names.append(h)
                 last_week = h
-            elif h == "Required run-rate" and last_week:
+            elif h.lower() == "required run-rate" and last_week:
                 col_names.append(f"{last_week} Required run-rate")
             else:
                 col_names.append(h)
-        
-        # 3) make DataFrame
+
+        # assemble DataFrame
         df = pd.DataFrame(data_rows, columns=col_names)
-        
-        # 4) drop any rows where Channel is blank (e.g. the bottom total row)
-        df = df[df["Channel"].str.strip() != ""].copy()
-        
-        # 5) convert all non-Channel columns to numeric (coerce errors to NaN)
+
+        # drop any totally blank/“Total” footer row
+        df = df[df["Channel"].str.strip().astype(bool)].copy()
+
+        # coerce all non-Channel columns to numbers
         for c in df.columns:
             if c != "Channel":
                 df[c] = pd.to_numeric(df[c], errors="coerce")
-        
+
         return df
 
     df_chan = fetch_and_clean("Channel-View")
@@ -51,5 +54,7 @@ def load_data():
 
 df_channel, df_pod = load_data()
 
-# —— rest of your code unchanged —— #
-# e.g. let user pick channel vs pod, show metrics cards, progress bars, charts, etc.
+# — the rest of your app stays exactly as before:
+#    • let the user pick Channel vs POD
+#    • apply filters
+#    • show metrics cards, progress bar, line chart, etc.
