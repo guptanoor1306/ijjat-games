@@ -137,7 +137,7 @@ st.markdown(f"""
       <div class="header-card-value">{pct_achieved:0.1f}%</div>
     </div>
   </div>
-  <div class="header-card-footer">Company Dec 2025 target: 70M</div>
+  <div class="header-card-footer">Company Dec 2025 target: 100M</div>
 </div>
 """, unsafe_allow_html=True)
 
